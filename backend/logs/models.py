@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 # Create your models here.
 class Operator(models.Model):
@@ -30,7 +31,7 @@ class Client(models.Model):
 
 class AlarmType(models.Model):
     name = models.CharField(max_length=50, null=False)
-    is_active = True
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = "alarm_type"
@@ -39,11 +40,11 @@ class AlarmType(models.Model):
         ordering = ["name"]
 
     def __str__(self):
-        return self.name4
+        return self.name
 
 class FalseAlarmType(models.Model):
     name = models.CharField(max_length=50, null=False)
-    is_active = True
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = "false_alarm_type"
@@ -58,12 +59,14 @@ class AlarmLog(models.Model):
     datetime = models.DateTimeField(auto_now_add=True, editable=False)
     operator = models.ForeignKey(Operator, on_delete=models.PROTECT, null=False)
     client = models.ForeignKey(Client, on_delete=models.PROTECT, null=False)
-    alarm_type = models.CharField(max_length=50)
-    user_answered = models.BooleanField()
-    real_emergency = models.BooleanField()
-    false_alarm_type = models.CharField(max_length=50)
-    correct_password = models.BooleanField()
-    correct_password_later = models.BooleanField()
+    alarm_type = models.ForeignKey(AlarmType, on_delete=models.PROTECT, null=False)
+    alarm_type_desc = models.CharField(max_length=50, null=True, blank=True)
+    user_answered = models.BooleanField(null=False)
+    real_emergency = models.BooleanField(null=True)
+    false_alarm_type = models.ForeignKey(FalseAlarmType, on_delete=models.PROTECT, null=True, blank=True)
+    false_alarm_type_desc = models.CharField(max_length=50, null=True, blank=True)
+    correct_password = models.BooleanField(null=True)
+    correct_password_later = models.BooleanField(null=True)
     is_active = models.BooleanField(default=True)
 
     class Meta():
@@ -73,4 +76,4 @@ class AlarmLog(models.Model):
         ordering = ["-datetime"]
 
     def __str__(self):
-        return f"{str(self.datetime)} - {str(self.operator)}"
+        return f"{timezone.localtime(self.datetime).strftime("%Y/%m/%d %H:%M")} - {str(self.client)}"
