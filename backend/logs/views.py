@@ -107,7 +107,7 @@ def get_log_info(request, id):
 
 def get_logs_page(request, page):
     queryset = AlarmLog.objects.filter(is_active=True)
-    paginator = Paginator(queryset, 20)
+    paginator = Paginator(queryset, 10)
     p = paginator.page(page)
     logs = []
     for log in p:
