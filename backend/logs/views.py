@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Operator, AlarmType, Client, FalseAlarmType, AlarmLog
 import json
@@ -21,8 +21,11 @@ def get_alarm_types(request):
     alarm_types_list = []
     alarm_types_queryset = AlarmType.objects.filter(is_active=True)
     for alarm_type in alarm_types_queryset:
-        alarm_types_list.append(alarm_type.name)
-    return HttpResponse(str(alarm_types_list))
+        alarm_types_list.append({
+            "id" : alarm_type.pk,
+            "name" : alarm_type.name
+            })
+    return HttpResponse(json.dumps(alarm_types_list))
 
 def get_clients(request):
     clients_list = []
@@ -38,8 +41,44 @@ def get_false_alarm_types(request):
     false_alarm_types_list = []
     false_alarm_types_queryset = FalseAlarmType.objects.filter(is_active=True)
     for false_alarm_type in false_alarm_types_queryset:
-        false_alarm_types_list.append(false_alarm_type.name)
-    return HttpResponse(str(false_alarm_types_list))
+        false_alarm_types_list.append({
+            "id" : false_alarm_type.pk,
+            "name" : false_alarm_type.name})
+    return HttpResponse(json.dumps(false_alarm_types_list))
+
+def get_form_data(request):
+    data = {
+        "operators": [
+            {
+                "id": operator.pk,
+                "name": f"{operator.last_name}, {operator.name}"
+            }
+            for operator in Operator.objects.filter(is_active=True)
+        ],
+        "alarm_types": [
+            {
+                "id": alarm_type.pk,
+                "name": alarm_type.name
+            }
+            for alarm_type in AlarmType.objects.filter(is_active=True)
+        ],
+        "clients": [
+            {
+                "id": client.pk,
+                "name": client.name
+            }
+            for client in Client.objects.filter(is_active=True)
+        ],
+        "false_alarm_types": [
+            {
+                "id": false_alarm_type.pk,
+                "name": false_alarm_type.name
+            }
+            for false_alarm_type in FalseAlarmType.objects.filter(is_active=True)
+        ]
+    }
+
+    return JsonResponse(data)
 
 @csrf_exempt
 def post_alarm_log(request):
