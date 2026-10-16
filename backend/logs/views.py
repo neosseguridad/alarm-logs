@@ -96,7 +96,7 @@ def post_alarm_log(request):
             real_emergency = data["real_emergency"]
         false_alarm_type = None
         if "false_alarm_type" in data:
-            false_alarm_type = data["false_alarm_type"]
+            false_alarm_type = FalseAlarmType.objects.get(pk=data["false_alarm_type"])
         false_alarm_type_desc = None
         if "false_alarm_type_desc" in data:
             false_alarm_type_desc = data["false_alarm_type_desc"]
@@ -106,10 +106,14 @@ def post_alarm_log(request):
         correct_password_later = None
         if "correct_password_later" in data:
             correct_password_later = data["correct_password_later"]
+        user_name = None
+        if "user_name" in data:
+            user_name = data["user_name"]
         log = AlarmLog.objects.create(
             is_active = True,
             operator = operator,
             client = client,
+            user_name = user_name,
             alarm_type = alarm_type,
             user_answered = user_answered,
             alarm_type_desc = alarm_type_desc,
@@ -119,7 +123,9 @@ def post_alarm_log(request):
             correct_password = correct_password,
             correct_password_later = correct_password_later
         )
-        return HttpResponse(log)
+        return JsonResponse({
+            "log_id" : log.pk
+        })
     else:
         return(HttpResponse("Method not allowed"))
 
@@ -138,7 +144,8 @@ def get_log_info(request, id):
             "false_alarm_type" : log.false_alarm_type.name if log.false_alarm_type else None,
             "false_alarm_type_desc" : log.false_alarm_type_desc,
             "correct_password" : log.correct_password,
-            "correct_password_later" : log.correct_password_later
+            "correct_password_later" : log.correct_password_later,
+            "user_name" : log.user_name
         }
         return HttpResponse(json.dumps(data))
     except:

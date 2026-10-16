@@ -62,6 +62,7 @@ class AlarmLog(models.Model):
     alarm_type = models.ForeignKey(AlarmType, on_delete=models.PROTECT, null=False)
     alarm_type_desc = models.CharField(max_length=50, null=True, blank=True)
     user_answered = models.BooleanField(null=False)
+    user_name = models.CharField(max_length=50, null=True, blank=True)
     real_emergency = models.BooleanField(null=True)
     false_alarm_type = models.ForeignKey(FalseAlarmType, on_delete=models.PROTECT, null=True, blank=True)
     false_alarm_type_desc = models.CharField(max_length=50, null=True, blank=True)
