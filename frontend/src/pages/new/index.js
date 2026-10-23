@@ -1,9 +1,8 @@
-
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export async function getServerSideProps() {
+export async function getServerSideProps() {    
     const postlog_url = `${process.env.backend}/postlog`
     const res = await fetch(`${process.env.backend}/formdata`);
 
@@ -127,6 +126,20 @@ export default function NewLog(props) {
     const [realEmergency, setRealEmergency] = useState(null);
     const [correctPassword, setCorrectPassword] = useState(null);
     const [correctPasswordLater, setCorrectPasswordLater] = useState(null);
+    const [selectedOperator, setSelectedOperator] = useState("");
+
+    useEffect(() => {
+        const savedOperator = localStorage.getItem("lastSelectedOperator");
+
+        if (
+            savedOperator &&
+            props.operators.some(
+                operator => String(operator.id) === savedOperator
+            )
+        ) {
+            setSelectedOperator(savedOperator);
+        }
+    }, [props.operators]);
 
     async function handleSubmit(event) {
         event.preventDefault();
@@ -237,12 +250,19 @@ export default function NewLog(props) {
                                 id="operator"
                                 name="operator"
                                 className={inputClass}
-                                defaultValue=""
+                                value={selectedOperator}
                                 required
+                                onChange={(event) => {
+                                    const operatorId = event.target.value;
+
+                                    setSelectedOperator(operatorId);
+                                    localStorage.setItem("lastSelectedOperator", operatorId);
+                                }}
                             >
                                 <option value="" disabled>
                                     Seleccionar operador
                                 </option>
+
                                 {props.operators.map(operator => (
                                     <option key={operator.id} value={operator.id}>
                                         {operator.name}
