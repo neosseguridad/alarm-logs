@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 import openpyxl
 from openpyxl.utils import get_column_letter
+from datetime import datetime
 
 # Create your views here.
 def get_operators(request):
@@ -173,8 +174,18 @@ def get_logs_page(request, page):
 
     return HttpResponse(json.dumps(data))
 
-def get_logs_report(request, start_date=None, finish_date=None):
+def get_logs_report(request):
+
+    start_date = datetime.strptime(request.GET.get("start_date"), "%Y-%m-%d") if request.GET.get("start_date") else None
+    finish_date = datetime.strptime(request.GET.get("finish_date"), "%Y-%m-%d") if request.GET.get("finish_date") else None
+
     queryset = AlarmLog.objects.filter(is_active=True)
+
+    if start_date:
+        queryset = queryset.filter(datetime__date__gte=start_date)
+    if finish_date:
+        queryset = queryset.filter(datetime__date__lte=finish_date)
+
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Alarm Logs"
