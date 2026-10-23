@@ -11,5 +11,5 @@ urlpatterns = [
     path("log/<int:id>", get_log_info),
     path("logs/<int:page>", get_logs_page),
     path("formdata", get_form_data),
-    path("eport", get_logs_report)
+    path("report", get_logs_report)
 ]
