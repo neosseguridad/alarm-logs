@@ -5,6 +5,7 @@ from .models import Operator, AlarmType, Client, FalseAlarmType, AlarmLog
 import json
 from django.core.paginator import Paginator
 from django.utils import timezone
+import openpyxl
 
 # Create your views here.
 def get_operators(request):
@@ -170,3 +171,44 @@ def get_logs_page(request, page):
     }
 
     return HttpResponse(json.dumps(data))
+
+def get_logs_report(request):
+    queryset = AlarmLog.objects.filter(is_active=True)
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Alarm Logs"
+    ws.append([
+        "ID",
+        "Date and Time",
+        "Operator",
+        "Client",
+        "Alarm Type",
+        "User Answered",
+        "Alarm Type Description",
+        "Real Emergency",
+        "False Alarm Type",
+        "False Alarm Type Description",
+        "Correct Password",
+        "Correct Password Later",
+        "User Name"
+    ])
+    for log in queryset:
+        ws.append([
+            log.pk,
+            timezone.localtime(log.datetime).strftime("%Y/%m/%d %H:%M"),
+            f"{log.operator.last_name}, {log.operator.name}",
+            log.client.name,
+            log.alarm_type.name,
+            log.user_answered,
+            log.alarm_type_desc,
+            log.real_emergency,
+            log.false_alarm_type.name if log.false_alarm_type else None,
+            log.false_alarm_type_desc,
+            log.correct_password,
+            log.correct_password_later,
+            log.user_name
+        ])
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=alarm_logs.xlsx'
+    wb.save(response)
+    return response
