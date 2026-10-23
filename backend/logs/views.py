@@ -6,6 +6,7 @@ import json
 from django.core.paginator import Paginator
 from django.utils import timezone
 import openpyxl
+from openpyxl.utils import get_column_letter
 
 # Create your views here.
 def get_operators(request):
@@ -172,25 +173,25 @@ def get_logs_page(request, page):
 
     return HttpResponse(json.dumps(data))
 
-def get_logs_report(request):
+def get_logs_report(request, start_date=None, finish_date=None):
     queryset = AlarmLog.objects.filter(is_active=True)
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Alarm Logs"
     ws.append([
         "ID",
-        "Date and Time",
-        "Operator",
-        "Client",
-        "Alarm Type",
-        "User Answered",
-        "Alarm Type Description",
-        "Real Emergency",
-        "False Alarm Type",
-        "False Alarm Type Description",
-        "Correct Password",
-        "Correct Password Later",
-        "User Name"
+        "Fecha y Hora",
+        "Operador",
+        "Cliente",
+        "Usuario contestó",
+        "Nombre de usuario que contestó",
+        "Tipo de Activación",
+        "Descripción Tipo de Activación",
+        "Emergencia Real",
+        "Razón de Falsa Alarma",
+        "Descripción Razón de Falsa Alarma",
+        "Consigna Correcta",
+        "Consigna Correcta Posteriormente",
     ])
     for log in queryset:
         ws.append([
@@ -198,17 +199,30 @@ def get_logs_report(request):
             timezone.localtime(log.datetime).strftime("%Y/%m/%d %H:%M"),
             f"{log.operator.last_name}, {log.operator.name}",
             log.client.name,
+            "Sí" if log.user_answered else "No",
+            log.user_name,
             log.alarm_type.name,
-            log.user_answered,
             log.alarm_type_desc,
-            log.real_emergency,
+            "Sí" if log.real_emergency else "No",
             log.false_alarm_type.name if log.false_alarm_type else None,
             log.false_alarm_type_desc,
-            log.correct_password,
-            log.correct_password_later,
-            log.user_name
+            "Sí" if log.correct_password else "No",
+            "Sí" if log.correct_password_later else "No"
         ])
+
+    for col in ws.columns:
+        max_len = 0
+        col_letter = get_column_letter(col[0].column)
+
+        for cell in col:
+            if cell.value is not None:
+                cell_len = len(str(cell.value))
+                if cell_len > max_len:
+                    max_len = cell_len
+        ws.column_dimensions[col_letter].width = max_len + 3
+
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=alarm_logs.xlsx'
+    response['Content-Disposition'] = 'attachment; filename=Reporte_Alarmas.xlsx'
     wb.save(response)
     return response
+
