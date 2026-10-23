@@ -1,6 +1,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 
 export async function getServerSideProps(context) {
     const page = Math.max(1, Number(context.query.page) || 1);
@@ -61,6 +62,16 @@ function PaginationButton({ href, disabled, children, label }) {
 export default function LogsList(props) {
     const previousPage = props.page - 1;
     const nextPage = props.page + 1;
+    const [startDate, setStartDate] = useState("");
+    const [finishDate, setFinishDate] = useState("");
+    const reportParams = new URLSearchParams();
+
+    if (startDate) reportParams.set("start_date", startDate);
+    if (finishDate) reportParams.set("finish_date", finishDate);
+
+    const reportUrl = reportParams.size
+        ? `${props.report_url}?${reportParams.toString()}`
+        : props.report_url;
 
     return (
         <main className="min-h-screen px-4 py-8 sm:px-6 sm:py-12">
@@ -124,40 +135,70 @@ export default function LogsList(props) {
                             </p>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3 self-start sm:self-auto">
+                        <div className="flex flex-wrap items-start gap-3 self-start sm:self-auto">
                             <div className="flex items-center gap-2 rounded-full
                                 bg-lime-100 px-3 py-1.5 text-xs font-semibold
                                 text-lime-800 dark:bg-lime-900/40 dark:text-lime-300">
                                 <span className="h-2 w-2 rounded-full bg-lime-600 dark:bg-lime-400" />
                                 Centro de Control
                             </div>
-                            <a
-                                href={props.report_url}
-                                className="inline-flex items-center justify-center gap-2
-                                    rounded-lg bg-lime-700 px-4 py-2 text-sm font-semibold
-                                    text-white transition hover:bg-lime-800
-                                    focus-visible:outline-2 focus-visible:outline-offset-2
-                                    focus-visible:outline-lime-600 dark:bg-lime-600
-                                    dark:hover:bg-lime-500"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    aria-hidden="true"
+                            <div className="flex flex-col gap-3">
+                                <a
+                                    href={reportUrl}
+                                    className="inline-flex items-center justify-center gap-2
+                                        rounded-lg bg-lime-700 px-4 py-2 text-sm font-semibold
+                                        text-white transition hover:bg-lime-800
+                                        focus-visible:outline-2 focus-visible:outline-offset-2
+                                        focus-visible:outline-lime-600 dark:bg-lime-600
+                                        dark:hover:bg-lime-500"
                                 >
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                    <path d="m7 10 5 5 5-5" />
-                                    <path d="M12 15V3" />
-                                </svg>
-                                Descargar Reporte
-                            </a>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        aria-hidden="true"
+                                    >
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <path d="m7 10 5 5 5-5" />
+                                        <path d="M12 15V3" />
+                                    </svg>
+                                    Descargar Reporte
+                                </a>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+                                        Fecha inicial
+                                        <input
+                                            type="date"
+                                            value={startDate}
+                                            onChange={event => setStartDate(event.target.value)}
+                                            className="mt-1 block w-full rounded-lg border
+                                                border-stone-300 bg-white px-2 py-1.5
+                                                text-sm font-normal text-stone-800
+                                                dark:border-stone-600 dark:bg-stone-800
+                                                dark:text-stone-100"
+                                        />
+                                    </label>
+                                    <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">
+                                        Fecha final
+                                        <input
+                                            type="date"
+                                            value={finishDate}
+                                            onChange={event => setFinishDate(event.target.value)}
+                                            className="mt-1 block w-full rounded-lg border
+                                                border-stone-300 bg-white px-2 py-1.5
+                                                text-sm font-normal text-stone-800
+                                                dark:border-stone-600 dark:bg-stone-800
+                                                dark:text-stone-100"
+                                        />
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
